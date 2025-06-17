@@ -1,0 +1,69 @@
+AI Roadmap Designer is a full-stack web application that helps users generate detailed, visually engaging learning roadmaps for various career paths using generative AI. The application leverages Google Gemini (Generative AI) to create structured, markdown-formatted roadmaps tailored to user input, making it easy for beginners to follow and plan their learning journey.
+
+---
+
+## Key Features
+
+- User Authentication: Users can register and log in securely. Authentication is handled with JWT tokens and passwords are hashed for security.
+- AI-Powered Roadmap Generation: Users input a desired career or skill (e.g., "software developer"), and the backend uses Google Gemini to generate a multi-phase, emoji-rich, GitHub-style markdown roadmap.
+- Modern UI/UX: The frontend is built with React and Tailwind CSS, providing a responsive, clean, and user-friendly interface.
+- Downloadable Roadmaps: Users can view, regenerate, and download their generated roadmaps as PDFs.
+- Protected Routes: Certain pages (like the roadmap generator) are protected and only accessible to authenticated users.
+
+---
+
+## Technical Stack
+
+- Frontend:
+  - React (with functional components and hooks)
+  - React Router for navigation
+  - Tailwind CSS for styling
+  - Context API for state management
+  - Markdown rendering for AI responses
+
+- Backend:
+  - Node.js with Express.js
+  - MongoDB for user data storage
+  - Mongoose for ODM
+  - Google Gemini API for AI content generation
+  - JWT for authentication
+  - Bcrypt for password hashing
+
+- Other:
+  - Environment variables managed via `.env`
+  - CORS and cookie handling for secure API communication
+  - Morgan for request logging
+
+---
+
+## How It Works
+
+1. User Registration & Login: Users create an account or log in. JWT tokens are issued and stored for session management.
+2. Roadmap Generation: Authenticated users enter a career/skill. The backend sends this prompt to Google Gemini, which returns a detailed, multi-phase learning roadmap in markdown format.
+3. Display & Download: The roadmap is rendered beautifully on the frontend with markdown support. Users can regenerate or download the roadmap as a PDF.
+
+---
+
+## Example Use Case
+
+- A user wants to become a "Full Stack Developer."
+- They log in, enter "Full Stack Developer" as their goal, and click "Generate."
+- The app displays a structured, phase-wise roadmap with topics, tools, time estimates, and free resources, all formatted for easy reading and engagement.
+
+---
+
+## Project Structure
+
+- backend/: Express server, user authentication, AI integration, MongoDB models, and API routes.
+- frontend/: React app with pages, components, context providers, and styling.
+
+---
+
+## Who Is This For?
+
+- Beginners planning a new career path.
+- Students seeking structured learning.
+- Anyone wanting a clear, actionable, and visually appealing learning roadmap powered by AI.
+
+---
+
