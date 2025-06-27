@@ -45,9 +45,9 @@ export function LoginForm({ className, ...props }) {
         localStorage.setItem("token", data.token);
         setTimeout(() => {
           navigate("/home");
-        }, 2000);
+        }, 1500);
       }
-    }, 1500);
+    }, 1000);
 
     setLoginDetails({
       email: "",

@@ -4,27 +4,32 @@ import Header from "../components/Header";
 import { RoadmapGenerate } from "../context/RoadmapContext";
 import Markdown from "react-markdown";
 import { SyncLoader } from "react-spinners";
-import html2pdf from "html2pdf.js";
 import Sidebar from "../components/Sidebar/Sidebar";
+import jspdf from "jspdf";
+import html2canvas from "html2canvas";
 import {
   TbLayoutSidebarLeftExpand,
   TbLayoutSidebarLeftCollapse,
 } from "react-icons/tb";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { GoBookmark, GoBookmarkFill } from "react-icons/go";
 
 const Home = () => {
   const { generateClicked, setGenerateClicked } =
     React.useContext(RoadmapGenerate);
-
   const { input, setInput } = React.useContext(RoadmapGenerate);
   const [userin, setuserin] = useState("");
+  // console.log(userin);
   const [roadmap, setRoadmap] = useState(``);
   const [isLoading, setIsLoading] = useState(false);
   const [sidebar, setSidebar] = useState(true);
   const [sidebarIcon, setSidebarIcon] = useState(
     <TbLayoutSidebarLeftCollapse size={24} />
   );
+  const [saveIcon, setSaveIcon] = useState(<GoBookmark size={24} />);
+  const [saved, setSaved] = useState(false);
+
+  // console.log("isLoading", isLoading);
+  // console.log("generateClicked", generateClicked);
 
   const apiCall = async (prompt) => {
     try {
@@ -47,39 +52,59 @@ const Home = () => {
   //html2pdf generation
   const roadmapref = React.useRef(null);
 
-  const handleDownload = () => {
-    const element = roadmapref.current;
+  const handleDownload = async () => {
+    const roadmapElement = roadmapref.current;
+    const clone = roadmapElement.cloneNode(true);
+    clone.style.background = "#ffffff";
+    clone.style.color = "#000000";
+    clone.style.padding = "20px";
+    clone.style.fontSize = "14px";
+    clone.style.fontFamily = "sans-serif";
+    clone.style.width = "794px";
 
-    html2pdf()
-      .set({
-        margin: 5,
-        filename: `${userin}-roadmap.pdf`,
-        image: {
-          type: "jpeg",
-          quality: 1,
-        },
-        html2canvas: {
-          scale: 4,
-        },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      })
-      .from(element)
-      .save();
+    clone.style.position = "absolute";
+    clone.style.top = "-9999px";
+    document.body.appendChild(clone);
+
+    const canvas = await html2canvas(clone, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jspdf({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4",
+    });
+
+    // const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${userin}-roadmap.pdf`);
+
+    document.body.removeChild(clone);
   };
 
   // roadmap regenerate logic
   const handleRegen = (e) => {
     e.preventDefault();
-    setuserin(input);
-    apiCall(userin);
+    apiCall(input);
+    if (input !== "" && input && !generateClicked) setuserin(input);
     setInput("");
     setIsLoading(true);
   };
 
   const handleGenerate = (e) => {
     e.preventDefault();
+    if (input === "" && !input && !isLoading && generateClicked)
+      return alert("Input cannot be empty!!");
+    if (input !== "" && input && !generateClicked) setuserin(input);
     apiCall(input);
-    setuserin(input);
     setInput("");
     setIsLoading(true);
   };
@@ -97,9 +122,16 @@ const Home = () => {
         <TbLayoutSidebarLeftExpand size={24} />
       )
     );
-  }, [sidebar]);
 
-  // console.log(sidebar);
+    setSaveIcon(
+      saved ? <GoBookmarkFill size={24} /> : <GoBookmark size={24} />
+    );
+  }, [sidebar, saved]);
+
+  // save logic
+  const handleSave = () => {
+    setSaved((prev) => !prev);
+  };
 
   return (
     <main className="overflow-hidden">
@@ -110,7 +142,7 @@ const Home = () => {
             sidebar ? "w-[20vw]" : "w-[0vw]"
           } transition-width ease-in-out duration-300`}
         >
-          <Sidebar sidebar={sidebar} />
+          <Sidebar saved={saved} userin={input} sidebar={sidebar} />
         </aside>
 
         <div
@@ -163,16 +195,26 @@ const Home = () => {
           </div>
 
           {generateClicked && !isLoading && (
-            <div className="m-auto w-[83%] sm:w-[75%] md:w-[70%] lg:w-[65%] border mt-8 px-10 py-5 mb-10 ">
-              <h2 className="text-2xl font-medium text-center mb-7">
-                {userin.toUpperCase()} Roadmap
-              </h2>
+            <div className="m-auto w-[83%] sm:min-w-[75%] md:min-w-[70%] lg:min-w-[65%] border mt-8 px-10 py-5 mb-10 ">
+              <div className="flex justify-between">
+                <div></div>
+                <h2 className="text-2xl font-medium text-center mb-7">
+                  {userin.toUpperCase()} Roadmap
+                </h2>
+                <span
+                  onClick={() => handleSave()}
+                  className=" cursor-pointer"
+                  title="save"
+                >
+                  {saveIcon}
+                </span>
+              </div>
               {roadmap && (
                 <>
                   <div
                     className="text-[.9rem] sm:text-[.75rem] md:text-[.8rem] lg:text-[1rem]"
                     ref={roadmapref}
-                    style={{ maxWidth: "794px" }}
+                    style={{ minWidth: "794px" }}
                   >
                     <Markdown>{roadmap}</Markdown>
                   </div>

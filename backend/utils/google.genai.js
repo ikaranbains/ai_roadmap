@@ -9,35 +9,54 @@ const generateFromGoogle = async (userPrompt) => {
   const model = ai.getGenerativeModel({ model: "gemini-1.5-pro" });
 
   const result = await model.generateContent(`
-    I want to create a **detailed learning roadmap** to become a successful ${userPrompt}.
-
-    ✅ Format Instructions:
-    - Respond in **GitHub-style Markdown**
-    - Use **rich formatting**: headings, bold, bullet points
-    - Add **emojis** in section titles and topic bullets to make it engaging
-    - DO NOT use "\\" slashes anywhere
-    - DO NOT include horizontal rules like "---"
-    - Use clear **line breaks** between points for readability
-    - Avoid writing big chunks of text — keep each point clean and skimmable
-
-    📚 Structure:
-    ## Phase 1: Foundational Front-End 🧱
-    ## Phase 2: Advanced Front-End & Tooling 🛠️
-    ## Phase 3: Back-End & Databases ⚙️
-    ## Phase 4: Deployment & DevOps 🚀
-    ## Phase 5: Continuous Learning & Specialization 🌱
-
-    💡 For each phase, include:
-    - Key topics with bullet points and emojis
-    - 1–2 tools or platforms to use
-    - Rough **time estimate** for that phase
-    - 1–2 recommended **free resources**
-
-    The roadmap should be practical, easy to follow for complete beginners, and visually well-structured in markdown.
-
-    Only return the roadmap content — no intro, no closing.
-
-  `);
+    I want to create a **detailed and visually appealing roadmap** to become a successful ${userPrompt}.
+    
+    ✅ Follow these formatting rules:
+    - Format using **GitHub-flavored Markdown**
+    - Use **section headings** with relevant **emojis** (not on every bullet)
+    - Use **4-space indented bullet points** under headings/subheadings
+    - **Separate** "Estimated Time" and "Tools & Resources" as distinct sections
+    - Include simple **flowcharts/diagrams** in markdown using \`\`\`text or markdown blocks
+    - Add **line breaks** between all groups to enhance readability
+    - Don't use "\\" or "---"
+    - Keep content short, clean, and well-structured
+    
+    📘 Sample layout (copy this style for every phase):
+    
+    ---
+    ## Phase 1: Programming Foundations 💻  
+    **🕒 Estimated Time:** 3–4 weeks  
+    
+    **🛠️ Tools & Resources:**  
+        - freeCodeCamp  
+        - MDN Web Docs  
+    
+    ### 🧠 Core Topics  
+        - Variables, data types, and operators  
+        - Conditionals and loops  
+        - Functions and scope  
+    
+    ### 🔁 Visual Guide  
+    \`\`\`text
+    Input → Process → Output  
+       ↓        ↓         ↓  
+    Variables → Logic → Result  
+    \`\`\`
+    
+    ---
+    
+    Repeat this format for all future phases like:  
+    - Advanced Concepts  
+    - Project Work  
+    - Tools/Frameworks  
+    - APIs/Databases  
+    - Deployment  
+    - Specialization
+    
+    📌 The content should be highly skimmable and visually structured for markdown viewers.
+    
+    Only return the roadmap content. No intro or closing.
+    `);
 
   // const responseText =
   //   result?.response?.candidates[0].content?.parts[0].text ||

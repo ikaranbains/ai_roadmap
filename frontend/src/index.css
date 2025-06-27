@@ -12,7 +12,7 @@
 }
 
 @theme {
-  --font-insta: "myinsta", sans-serif
+  --font-insta: "myinsta", sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -130,5 +130,41 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@media print {
+  :root {
+    --background: #ffffff;
+    --foreground: #121212;
+    --card: #ffffff;
+    --card-foreground: #121212;
+    --popover: #ffffff;
+    --popover-foreground: #121212;
+    --primary: #222222;
+    --primary-foreground: #f9f9f9;
+    --secondary: #f0f0f0;
+    --secondary-foreground: #222222;
+    --muted: #f0f0f0;
+    --muted-foreground: #888888;
+    --accent: #f0f0f0;
+    --accent-foreground: #222222;
+    --destructive: #d23f3f;
+    --border: #e2e2e2;
+    --input: #e2e2e2;
+    --ring: #bbbbbb;
+    --chart-1: #e08050;
+    --chart-2: #7090f5;
+    --chart-3: #4568ff;
+    --chart-4: #f5dd55;
+    --chart-5: #e2b750;
+    --sidebar: #fdfdfd;
+    --sidebar-foreground: #222222;
+    --sidebar-primary: #2e2e2e;
+    --sidebar-primary-foreground: #fdfdfd;
+    --sidebar-accent: #eaeaea;
+    --sidebar-accent-foreground: #2e2e2e;
+    --sidebar-border: #dcdcdc;
+    --sidebar-ring: #bbbbbb;
   }
 }

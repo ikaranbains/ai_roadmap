@@ -2,7 +2,8 @@ import React from "react";
 import Profile from "./Profile";
 import SaveBox from "./SaveBox";
 
-const Sidebar = ({ sidebar }) => {
+const Sidebar = ({ sidebar, saved, userin }) => {
+  console.log("sidebar: ", userin);
   return (
     <div
       id="sidebar-main"
@@ -14,7 +15,7 @@ const Sidebar = ({ sidebar }) => {
       <div className="w-full border-t border-b-zinc-300 mt-5"></div>
 
       <div className="overflow-y-auto h-full">
-        <SaveBox />
+        <SaveBox saved={saved} userin={userin} />
       </div>
     </div>
   );
