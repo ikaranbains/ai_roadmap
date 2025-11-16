@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
 import Header from "../components/Header";
 import { RoadmapGenerate } from "../context/RoadmapContext";
 import Markdown from "react-markdown";
@@ -12,6 +12,9 @@ import {
   TbLayoutSidebarLeftCollapse,
 } from "react-icons/tb";
 import { GoBookmark, GoBookmarkFill } from "react-icons/go";
+// import { ClockFadingIcon } from "lucide-react";
+import { apiCall } from "@/lib/apiService";
+import Loader from "@/components/Loader";
 
 const Home = () => {
   const { generateClicked, setGenerateClicked } =
@@ -31,19 +34,30 @@ const Home = () => {
   // console.log("isLoading", isLoading);
   // console.log("generateClicked", generateClicked);
 
-  const apiCall = async (prompt) => {
+  const fetchData = async (prompt) => {
     try {
-      const response = await axios.get("http://localhost:3000/api/get-data", {
+      // const response = await axios.get("/api/get-data", {
+      //   params: {
+      //     userInput: prompt,
+      //   },
+      // });
+
+      const response = await apiCall({
+        method: "get",
+        url: "/api/get-data",
         params: {
           userInput: prompt,
         },
       });
 
-      if (response) {
-        setGenerateClicked(true);
-        setIsLoading(false);
-        setRoadmap(response.data.roadmap);
-      }
+      console.log("Response ---------", response);
+
+      // if (response) {
+      //   console.log("here", response.data.roadmap);
+      //   setGenerateClicked(true);
+      //   setIsLoading(false);
+      //   setRoadmap(response.data.roadmap);
+      // }
     } catch (error) {
       console.log(error);
     }
@@ -91,20 +105,21 @@ const Home = () => {
   };
 
   // roadmap regenerate logic
-  const handleRegen = (e) => {
+  const handleRegen = async (e) => {
     e.preventDefault();
-    apiCall(input);
+    await fetchData(input);
     if (input !== "" && input && !generateClicked) setuserin(input);
     setInput("");
     setIsLoading(true);
   };
 
-  const handleGenerate = (e) => {
+  const handleGenerate = async (e) => {
     e.preventDefault();
     if (input === "" && !input && !isLoading && generateClicked)
       return alert("Input cannot be empty!!");
     if (input !== "" && input && !generateClicked) setuserin(input);
-    apiCall(input);
+    console.log("===============", input);
+    await fetchData(input);
     setInput("");
     setIsLoading(true);
   };
@@ -135,6 +150,11 @@ const Home = () => {
 
   return (
     <main className="overflow-hidden">
+      {isLoading && (
+        <div className="absolute backdrop-blur-xl w-screen h-screen top-0 z-[99] flex items-center justify-center">
+          <Loader />
+        </div>
+      )}
       <Header home={true} />
       <div className="overflow-hidden w-screen flex h-[88vh]">
         <aside
@@ -181,17 +201,6 @@ const Home = () => {
                 Generate
               </button>
             </form>
-          </div>
-
-          <div>
-            {isLoading && (
-              <div className="shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] flex items-center justify-center gap-5 sm:gap-7 md:gap-5 lg:gap-4 bg-zinc-100 w-[60vw] sm:w-[47vw] lg:w-[35vw] py-3 sm:py-2 lg:h-[10vh] px-7 mt-10">
-                <h2 className="text-[.7rem] sm:text-[1.2rem] md:text-[1.3rem] lg:text-[1.6rem]">
-                  Generating Roadmap
-                </h2>
-                <SyncLoader size={5} />
-              </div>
-            )}
           </div>
 
           {generateClicked && !isLoading && (

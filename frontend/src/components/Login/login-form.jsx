@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,15 +8,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Label from "../common/Label";
 import { Link } from "react-router-dom";
 import { LoginDetails } from "../../context/LoginContext";
-import { useContext, useEffect, useState } from "react";
-import axios from "axios";
+import { useContext, useState } from "react";
+// import axios from "axios";
 import { UserDetails } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
-import { PuffLoader } from "react-spinners";
+// import { PuffLoader } from "react-spinners";
+// import Loader from "../Loader";
+// import Loader from "@/components/Loader";
+import { apiCall } from "@/lib/apiService";
+import toast from "react-hot-toast";
+import { AtSign, LockKeyhole, LogIn } from "lucide-react";
 
 export function LoginForm({ className, ...props }) {
   const { loginDetails, setLoginDetails } = useContext(LoginDetails);
@@ -26,33 +31,51 @@ export function LoginForm({ className, ...props }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     const userLogged = {
       email: loginDetails.email,
       password: loginDetails.password,
     };
 
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/user/login`,
-      userLogged
-    );
+    try {
+      setLoading(true);
+      // console.log("user --", userLogged);
+      const response = await apiCall({
+        method: "post",
+        url: "/user/login",
+        data: userLogged,
+      });
 
-    setTimeout(() => {
-      if (response.status === 200) {
+      console.log("response =====================================", response);
+      if (response?.status === 200) {
         setLoading(false);
         const data = response.data;
         setUser(data.user);
-        localStorage.setItem("token", data.token);
-        setTimeout(() => {
-          navigate("/home");
-        }, 1500);
+        navigate("/home");
+        setLoginDetails({
+          email: "",
+          password: "",
+        });
       }
-    }, 1000);
-
-    setLoginDetails({
-      email: "",
-      password: "",
-    });
+    } catch (err) {
+      let message;
+      if (err.response?.status === 400) {
+        message = err.response.data.errors[0].msg || "Something went wrong";
+        toast.error(message);
+      } else if (err.response?.status === 401) {
+        message = err.response.data.message || "Something went wrong";
+        console.log(message);
+        toast.error(message);
+      } else {
+        toast.error(
+          <div className="text-center">
+            <p className="font-semibold text-base">Something went wrong</p>
+            <p className="text-sm opacity-80">Please try again later</p>
+          </div>
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   //password view hide
@@ -76,20 +99,26 @@ export function LoginForm({ className, ...props }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={(e) => handleSubmit(e)} noValidate>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  onChange={(e) =>
-                    setLoginDetails({ ...loginDetails, email: e.target.value })
-                  }
-                  value={loginDetails.email}
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
+                <div className="flex gap-3 items-center">
+                  <AtSign size={20} />
+                  <Input
+                    onChange={(e) =>
+                      setLoginDetails({
+                        ...loginDetails,
+                        email: e.target.value,
+                      })
+                    }
+                    value={loginDetails.email}
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                  />
+                </div>
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
@@ -102,41 +131,49 @@ export function LoginForm({ className, ...props }) {
                   </a>
                 </div>
                 <div className="flex items-center justify-center gap-3">
-                  <Input
-                    onChange={(e) =>
-                      setLoginDetails({
-                        ...loginDetails,
-                        password: e.target.value,
-                      })
-                    }
-                    value={loginDetails.password}
-                    id="password"
-                    type={type}
-                    required
-                  />
-                  <span
-                    onClick={() => handleView()}
-                    className="inline-block cursor-pointer"
-                  >
-                    {eyeClicked ? (
-                      <LuEyeClosed size={24} />
-                    ) : (
-                      <LuEye size={24} />
-                    )}
-                  </span>
+                  <LockKeyhole size={20} />
+                  <div className="flex items-center gap-3 h-9 w-full min-w-0 rounded-md border border-gray-300 bg-transparent px-1 py-1 text-base shadow-sm transition-colors outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 selection:bg-blue-500 selection:text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50 aria-[invalid=true]:border-red-500 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-500/20 dark:bg-gray-800 dark:border-gray-700">
+                    <input
+                      type={type}
+                      value={loginDetails.password}
+                      onChange={(e) =>
+                        setLoginDetails({
+                          ...loginDetails,
+                          password: e.target.value,
+                        })
+                      }
+                      id="password"
+                      className="w-full border-none outline-none bg-transparent px-2 rounded"
+                      required
+                    />
+                    <span
+                      onClick={() => handleView()}
+                      className="inline-block cursor-pointer mr-2"
+                    >
+                      {eyeClicked ? (
+                        <LuEyeClosed size={18} />
+                      ) : (
+                        <LuEye size={18} />
+                      )}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={(e) => handleSubmit(e)}
+              <div className="flex flex-col gap-3 select-none justify-center items-center">
+                <button
                   type="submit"
-                  className="w-full cursor-pointer"
+                  className="group relative inline-flex h-10 w-10.5 items-center justify-center overflow-hidden rounded-full bg-neutral-950 font-medium text-neutral-200 transition-all duration-300 hover:w-30 cursor-pointer"
                 >
-                  {loading ? <PuffLoader size={20} color="#ffffff" /> : "Login"}
-                </Button>
+                  <div className="inline-flex whitespace-nowrap opacity-0 transition-all duration-200 group-hover:-translate-x-3 group-hover:opacity-100">
+                    Login
+                  </div>
+                  <div className="absolute right-3.5">
+                    <LogIn size={18} />
+                  </div>
+                </button>
               </div>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-4 text-center text-sm select-none">
               Don&apos;t have an account?{" "}
               <Link to="/register" className="underline">
                 Sign up

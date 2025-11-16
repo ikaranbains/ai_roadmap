@@ -8,15 +8,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Label from "../common/Label";
 import { Link } from "react-router-dom";
-import { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { RegisterDetails } from "../../context/RegisterContext";
 import { UserDetails } from "../../context/UserContext";
 import axios from "axios";
-import { ToastContainer, toast, Bounce } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
+import toast from "react-hot-toast";
+import { apiCall } from "@/lib/apiService";
 
 export function RegisterForm({ className, ...props }) {
   const { registerDetails, setRegisterDetails } = useContext(RegisterDetails);
@@ -33,24 +34,23 @@ export function RegisterForm({ className, ...props }) {
       password: registerDetails.password,
     };
 
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/user/register`,
-      newUser
-    );
+    // const response = await axios.post(
+    //   `${import.meta.env.VITE_API_URL}/user/register`,
+    //   newUser
+    // );
+
+    const response = await apiCall({
+      method: "post",
+      url: "/user/register",
+      data: newUser,
+    });
+
+    console.log("--------------", response);
 
     if (response.status === 201) {
       const data = response.data;
       setRegisterUser(data.user);
-      localStorage.setItem("token", data.token);
-      toast.success("User registered successfully", {
-        position: "top-right",
-        autoClose: 1000,
-        hideProgressBar: false,
-        pauseOnHover: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
+      toast.success("User registered successfully");
       setTimeout(() => {
         navigate("/login");
       }, 2000);
@@ -77,17 +77,6 @@ export function RegisterForm({ className, ...props }) {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        rtl={false}
-        pauseOnFocusLoss
-        pauseOnHover
-        theme="light"
-        transition={Bounce}
-      />
       <Card>
         <CardHeader>
           <CardTitle>Create a new account</CardTitle>
@@ -99,7 +88,13 @@ export function RegisterForm({ className, ...props }) {
           <form>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="firstname">Firstname</Label>
+                {/* <Label htmlFor="firstname">Firstname</Label> */}
+                <Label
+                  htmlFor="firstname"
+                  content="Firstname"
+                  required
+                  className="text-sm font-medium"
+                />
                 <Input
                   onChange={(e) =>
                     setRegisterDetails({
@@ -115,7 +110,11 @@ export function RegisterForm({ className, ...props }) {
                 />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="lastname">Lastname</Label>
+                <Label
+                  htmlFor="lastname"
+                  content="Lastname"
+                  className="text-sm font-medium"
+                />
                 <Input
                   onChange={(e) =>
                     setRegisterDetails({
@@ -130,7 +129,12 @@ export function RegisterForm({ className, ...props }) {
                 />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label
+                  htmlFor="email"
+                  content="Email"
+                  required
+                  className="text-sm font-medium"
+                />
                 <Input
                   onChange={(e) =>
                     setRegisterDetails({
@@ -147,7 +151,12 @@ export function RegisterForm({ className, ...props }) {
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label
+                    htmlFor="password"
+                    content="Password"
+                    required
+                    className="text-sm font-medium"
+                  />
                 </div>
                 <div className="flex items-center justify-center gap-3">
                   <Input

@@ -9,10 +9,16 @@ import Register from "./components/Register/Register";
 import RegisterContext from "./context/RegisterContext";
 import UserContext from "./context/UserContext";
 import HomeProtectWrapper from "./wrappers/HomeProtectWrapper";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
     <div className="w-screen h-screen">
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{ duration: 2000 }}
+      />
       <UserContext>
         <RegisterContext>
           <LoginContext>

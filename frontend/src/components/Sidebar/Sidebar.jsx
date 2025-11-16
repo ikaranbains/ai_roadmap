@@ -3,7 +3,7 @@ import Profile from "./Profile";
 import SaveBox from "./SaveBox";
 
 const Sidebar = ({ sidebar, saved, userin }) => {
-  console.log("sidebar: ", userin);
+  // console.log("sidebar: ", userin);
   return (
     <div
       id="sidebar-main"

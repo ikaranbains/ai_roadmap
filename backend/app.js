@@ -17,7 +17,12 @@ app.use(express.urlencoded({ limit: "16kb" }));
 
 //CORS
 const cors = require("cors");
-app.use(cors("*"));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 //logger
 const morgan = require("morgan");
