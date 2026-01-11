@@ -3,9 +3,9 @@ import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 
-const Header = ({ home }) => {
+const Header = ({ home, landing }) => {
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const { user, setUser } = useContext(UserDetails);
+  const { setUser } = useContext(UserDetails);
   const navigate = useNavigate();
 
   //logout logic
@@ -19,24 +19,45 @@ const Header = ({ home }) => {
     }, 1000);
   };
   return (
-    <div className="w-full overflow-hidden h-[12vh] flex items-center justify-between px-17">
-      <h1 className="text-lg font-medium hover:font-semibold tracking-tight leading-none">
-        <Link to="/">justRoadmap</Link>
-      </h1>
-      <h2 className="font-light text-zinc-300">NOTHING HERE</h2>
-      {home ? (
-        <button
-          onClick={() => handleLogout()}
-          className="bg-red-500 text-white hover:bg-red-600 px-4 py-1.5 rounded cursor-pointer"
-        >
-          {logoutLoading ? <PuffLoader size={22} color="#ffffff" /> : "Logout"}
-        </button>
-      ) : (
-        <h1 className="text-lg font-medium hover:font-semibold tracking-tight leading-none">
-          <Link to="/">justRoadmap</Link>
+    <header className="w-full border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <h1 className="text-base font-semibold tracking-tight">
+          <Link to="/" className="hover:opacity-80 transition-opacity">
+            justRoadmap
+          </Link>
         </h1>
-      )}
-    </div>
+
+        <div className="flex items-center gap-2">
+          {home ? (
+            <button
+              onClick={() => handleLogout()}
+              className="inline-flex items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+            >
+              {logoutLoading ? (
+                <PuffLoader size={18} color="#ffffff" />
+              ) : (
+                "Logout"
+              )}
+            </button>
+          ) : landing ? (
+            <nav className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                Create account
+              </Link>
+            </nav>
+          ) : null}
+        </div>
+      </div>
+    </header>
   );
 };
 

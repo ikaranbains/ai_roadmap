@@ -13,7 +13,7 @@ import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
-    <div className="w-screen h-screen">
+    <div className="min-h-screen w-full overflow-x-hidden">
       <Toaster
         position="top-center"
         reverseOrder={false}
@@ -27,6 +27,7 @@ const App = () => {
                 <Route path="/" element={<Start />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/trial" element={<Home trial />} />
                 <Route
                   path="/home"
                   element={

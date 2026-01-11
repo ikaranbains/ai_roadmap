@@ -128,6 +128,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    @apply w-full overflow-x-hidden;
+  }
+  #root {
+    @apply min-h-screen;
+  }
   body {
     @apply bg-background text-foreground;
   }

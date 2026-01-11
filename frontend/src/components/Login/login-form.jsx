@@ -25,7 +25,7 @@ import { AtSign, LockKeyhole, LogIn } from "lucide-react";
 
 export function LoginForm({ className, ...props }) {
   const { loginDetails, setLoginDetails } = useContext(LoginDetails);
-  const { user, setUser } = useContext(UserDetails);
+  const { setUser } = useContext(UserDetails);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -162,13 +162,22 @@ export function LoginForm({ className, ...props }) {
               <div className="flex flex-col gap-3 select-none justify-center items-center">
                 <button
                   type="submit"
+                  disabled={loading}
+                  aria-busy={loading}
                   className="group relative inline-flex h-10 w-10.5 items-center justify-center overflow-hidden rounded-full bg-neutral-950 font-medium text-neutral-200 transition-all duration-300 hover:w-30 cursor-pointer"
                 >
                   <div className="inline-flex whitespace-nowrap opacity-0 transition-all duration-200 group-hover:-translate-x-3 group-hover:opacity-100">
                     Login
                   </div>
                   <div className="absolute right-3.5">
-                    <LogIn size={18} />
+                    {loading ? (
+                      <span
+                        aria-hidden="true"
+                        className="inline-block size-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                      />
+                    ) : (
+                      <LogIn size={18} />
+                    )}
                   </div>
                 </button>
               </div>

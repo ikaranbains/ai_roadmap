@@ -13,7 +13,6 @@ import { Link } from "react-router-dom";
 import { useContext, useState } from "react";
 import { RegisterDetails } from "../../context/RegisterContext";
 import { UserDetails } from "../../context/UserContext";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
 import toast from "react-hot-toast";
@@ -21,7 +20,7 @@ import { apiCall } from "@/lib/apiService";
 
 export function RegisterForm({ className, ...props }) {
   const { registerDetails, setRegisterDetails } = useContext(RegisterDetails);
-  const { registerUser, setRegisterUser } = useContext(UserDetails);
+  const { setRegisterUser } = useContext(UserDetails);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {

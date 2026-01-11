@@ -69,22 +69,16 @@ export const apiCall = async ({
 
   const isFormData = data instanceof FormData;
 
-  try {
-    const response = await apiClient({
-      method: method.toLowerCase(),
-      url,
-      data,
-      params,
-      headers: {
-        ...(!isFormData && { "Content-Type": "application/json" }),
-        ...headers,
-      },
-    });
-
-    return response;
-  } catch (err) {
-    throw err;
-  }
+  return await apiClient({
+    method: method.toLowerCase(),
+    url,
+    data,
+    params,
+    headers: {
+      ...(!isFormData && { "Content-Type": "application/json" }),
+      ...headers,
+    },
+  });
 };
 
 export default apiClient;

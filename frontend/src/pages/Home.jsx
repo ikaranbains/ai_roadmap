@@ -1,25 +1,32 @@
-import React, { useState, useContext, useEffect } from "react";
-// import axios from "axios";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../components/Header";
 import { RoadmapGenerate } from "../context/RoadmapContext";
 import Markdown from "react-markdown";
-import { SyncLoader } from "react-spinners";
-import Sidebar from "../components/Sidebar/Sidebar";
 import jspdf from "jspdf";
 import html2canvas from "html2canvas";
-import {
-  TbLayoutSidebarLeftExpand,
-  TbLayoutSidebarLeftCollapse,
-} from "react-icons/tb";
+import Sidebar from "../components/Sidebar/Sidebar";
+import { TbLayoutSidebarLeftExpand, TbLayoutSidebarLeftCollapse } from "react-icons/tb";
 import { GoBookmark, GoBookmarkFill } from "react-icons/go";
-// import { ClockFadingIcon } from "lucide-react";
 import { apiCall } from "@/lib/apiService";
 import Loader from "@/components/Loader";
+import LimitModal from "@/components/modals/LimitModal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 
-const Home = () => {
+const TRIAL_LIMIT = 3;
+const TRIAL_STORAGE_KEY = "trial_roadmap_count";
+
+const Home = ({ trial = false }) => {
   const { generateClicked, setGenerateClicked } =
     React.useContext(RoadmapGenerate);
   const { input, setInput } = React.useContext(RoadmapGenerate);
+  const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
+  const Motion = motion;
+
   const [userin, setuserin] = useState("");
   // console.log(userin);
   const [roadmap, setRoadmap] = useState(``);
@@ -30,18 +37,25 @@ const Home = () => {
   );
   const [saveIcon, setSaveIcon] = useState(<GoBookmark size={24} />);
   const [saved, setSaved] = useState(false);
+  const [limitModalOpen, setLimitModalOpen] = useState(trial);
+  const [trialUsed, setTrialUsed] = useState(() => {
+    if (!trial) return 0;
+    const raw = localStorage.getItem(TRIAL_STORAGE_KEY);
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : 0;
+  });
+
+  const trialLocked = trial && trialUsed >= TRIAL_LIMIT;
+  const trialRemaining = useMemo(
+    () => Math.max(0, TRIAL_LIMIT - trialUsed),
+    [trialUsed]
+  );
 
   // console.log("isLoading", isLoading);
   // console.log("generateClicked", generateClicked);
 
   const fetchData = async (prompt) => {
     try {
-      // const response = await axios.get("/api/get-data", {
-      //   params: {
-      //     userInput: prompt,
-      //   },
-      // });
-
       const response = await apiCall({
         method: "get",
         url: "/api/get-data",
@@ -52,14 +66,22 @@ const Home = () => {
 
       console.log("Response ---------", response);
 
-      // if (response) {
-      //   console.log("here", response.data.roadmap);
-      //   setGenerateClicked(true);
-      //   setIsLoading(false);
-      //   setRoadmap(response.data.roadmap);
-      // }
+      const roadmapText = response?.data?.roadmap;
+      if (roadmapText) {
+        setGenerateClicked(true);
+        setRoadmap(roadmapText);
+
+        if (trial) {
+          const next = trialUsed + 1;
+          setTrialUsed(next);
+          localStorage.setItem(TRIAL_STORAGE_KEY, String(next));
+          if (next >= TRIAL_LIMIT) setLimitModalOpen(true);
+        }
+      }
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,21 +129,23 @@ const Home = () => {
   // roadmap regenerate logic
   const handleRegen = async (e) => {
     e.preventDefault();
+    if (!input || input.trim() === "") return alert("Input cannot be empty!!");
+    if (trialLocked) return setLimitModalOpen(true);
+    setIsLoading(true);
     await fetchData(input);
     if (input !== "" && input && !generateClicked) setuserin(input);
     setInput("");
-    setIsLoading(true);
   };
 
   const handleGenerate = async (e) => {
     e.preventDefault();
-    if (input === "" && !input && !isLoading && generateClicked)
-      return alert("Input cannot be empty!!");
+    if (!input || input.trim() === "") return alert("Input cannot be empty!!");
+    if (trialLocked) return setLimitModalOpen(true);
     if (input !== "" && input && !generateClicked) setuserin(input);
     console.log("===============", input);
+    setIsLoading(true);
     await fetchData(input);
     setInput("");
-    setIsLoading(true);
   };
 
   //sidebar logic
@@ -145,106 +169,204 @@ const Home = () => {
 
   // save logic
   const handleSave = () => {
+    if (trial) return setLimitModalOpen(true);
     setSaved((prev) => !prev);
   };
 
   return (
-    <main className="overflow-hidden">
+    <main className="min-h-screen overflow-x-hidden bg-gradient-to-br from-zinc-50 via-white to-zinc-100">
       {isLoading && (
-        <div className="absolute backdrop-blur-xl w-screen h-screen top-0 z-[99] flex items-center justify-center">
+        <div className="fixed inset-0 backdrop-blur-xl z-[99] flex items-center justify-center">
           <Loader />
         </div>
       )}
-      <Header home={true} />
-      <div className="overflow-hidden w-screen flex h-[88vh]">
-        <aside
-          className={`h-full ${
-            sidebar ? "w-[20vw]" : "w-[0vw]"
-          } transition-width ease-in-out duration-300`}
-        >
-          <Sidebar saved={saved} userin={input} sidebar={sidebar} />
-        </aside>
+      <Header home={!trial} landing={trial} />
 
+      <LimitModal
+        open={limitModalOpen}
+        onClose={() => setLimitModalOpen(false)}
+        trialUsed={trialUsed}
+        trialLimit={TRIAL_LIMIT}
+        title={trialLocked ? "Trial limit reached" : "Trial mode"}
+        description={
+          trialLocked
+            ? "You’ve used all 3 free generations. Login/signup to generate more roadmaps and unlock saved roadmaps."
+            : "You can generate up to 3 roadmaps for free. Saved roadmaps and the sidebar are disabled until you login."
+        }
+        onPrimary={() => navigate("/login")}
+        onSecondary={() => navigate("/register")}
+      />
+
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <div
-          className={`flex flex-col gap-2 items-center justify-start pt-5 border-t border-l overflow-y-auto overflow-x-hidden ${
-            sidebar ? "w-[80vw]" : "w-[100vw]"
-          } transition-width ease-in-out duration-300`}
+          className={`grid gap-6 ${
+            trial ? "" : "lg:grid-cols-[300px_1fr]"
+          }`}
         >
-          <span
-            onClick={() => handleSidebar()}
-            className="inline-block self-start ml-5 cursor-pointer"
-          >
-            {sidebarIcon}
-          </span>
-          <div className="font-['Inter'] ">
-            <form className="flex flex-col items-center justify-center mt-10 gap-5">
-              <label
-                className=" text-sm sm:text-md lg:text-lg font-medium "
-                htmlFor="roadmap"
-              >
-                What Roadmap do you want to create ?
-              </label>
-              <input
-                onChange={(e) => setInput(e.target.value)}
-                value={input}
-                className="border-b border-zinc-400 outline-none rounded px-2 pl-5 py-2 w-[60vw] sm:w-[28vw] lg:w-[30vw]"
-                id="roadmap"
-                name="roadmap"
-                type="text"
-                placeholder="e.g software developer"
-              />
-              <button
-                type="submit"
-                onClick={(e) => handleGenerate(e)}
-                className="px-3 py-1 text-white bg-[#443C68] hover:bg-black transition-all ease 200ms cursor-pointer mt-5 rounded text-[4vw] sm:text-sm md:text-md lg:text-lg"
-              >
-                Generate
-              </button>
-            </form>
-          </div>
-
-          {generateClicked && !isLoading && (
-            <div className="m-auto w-[83%] sm:min-w-[75%] md:min-w-[70%] lg:min-w-[65%] border mt-8 px-10 py-5 mb-10 ">
-              <div className="flex justify-between">
-                <div></div>
-                <h2 className="text-2xl font-medium text-center mb-7">
-                  {userin.toUpperCase()} Roadmap
-                </h2>
-                <span
-                  onClick={() => handleSave()}
-                  className=" cursor-pointer"
-                  title="save"
-                >
-                  {saveIcon}
-                </span>
-              </div>
-              {roadmap && (
-                <>
-                  <div
-                    className="text-[.9rem] sm:text-[.75rem] md:text-[.8rem] lg:text-[1rem]"
-                    ref={roadmapref}
-                    style={{ minWidth: "794px" }}
+          {!trial && (
+            <Card className="bg-white/60 backdrop-blur">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-base">
+                  Saved roadmaps
+                  <button
+                    onClick={() => handleSidebar()}
+                    className="rounded-md p-2 hover:bg-accent"
+                    title="Toggle sidebar"
+                    type="button"
                   >
-                    <Markdown>{roadmap}</Markdown>
-                  </div>
-                  <div className="mt-4 mb-4 py-2 flex items-center justify-center gap-5">
-                    <button
-                      onClick={(e) => handleRegen(e)}
-                      className="bg-blue-600 text-white border-none rounded-md px-4 py-1 md:px-3 lg:px-4 lg:py-2 text-[.7rem] md:text-[.9rem] lg:text-[1rem] cursor-pointer"
-                    >
-                      Regenerate Roadmap
-                    </button>
-                    <button
-                      onClick={() => handleDownload()}
-                      className="bg-green-600 text-white border-none rounded-md px-4 py-1 md:px-3 lg:px-4 lg:py-2 text-[.7rem] md:text-[.9rem] lg:text-[1rem] cursor-pointer"
-                    >
-                      Download PDF
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+                    {sidebarIcon}
+                  </button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className={sidebar ? "block" : "hidden lg:block"}>
+                <div className="h-[calc(100vh-12rem)] overflow-y-auto">
+                  <Sidebar saved={saved} userin={input} sidebar={true} />
+                </div>
+              </CardContent>
+            </Card>
           )}
+
+          {trial && (
+            <Card className="bg-white/60 backdrop-blur">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Trial mode</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-zinc-600">
+                <div className="flex items-center justify-between">
+                  <span>Free generations left</span>
+                  <span className="font-medium text-zinc-900">
+                    {trialRemaining}/{TRIAL_LIMIT}
+                  </span>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Button onClick={() => navigate("/login")} className="w-full">
+                    Login
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/register")}
+                    className="w-full"
+                  >
+                    Sign up
+                  </Button>
+                </div>
+                <p className="mt-3 text-xs text-zinc-500">
+                  Saved roadmaps & sidebar are disabled in trial mode.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="space-y-6">
+            <Motion.div
+              initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.45, ease: "easeOut" }}
+            >
+              <Card className="bg-white/60 backdrop-blur">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">
+                    Generate your roadmap
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form
+                    onSubmit={(e) => handleGenerate(e)}
+                    className="flex flex-col gap-3 sm:flex-row sm:items-center"
+                  >
+                    <div className="w-full">
+                      <label htmlFor="roadmap" className="sr-only">
+                        Roadmap topic
+                      </label>
+                      <Input
+                        id="roadmap"
+                        name="roadmap"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="e.g. Software Developer"
+                        disabled={trialLocked}
+                      />
+                      {trial && (
+                        <p className="mt-2 text-xs text-zinc-500">
+                          Trial: {trialRemaining}/{TRIAL_LIMIT} generations left
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={trialLocked || isLoading}
+                      className="h-9 sm:h-10"
+                    >
+                      Generate
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </Motion.div>
+
+            {generateClicked && !isLoading && roadmap && (
+              <Card className="bg-white/60 backdrop-blur">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <CardTitle className="text-base">
+                      {userin ? `${userin.toUpperCase()} Roadmap` : "Roadmap"}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSave()}
+                        className={`rounded-md p-2 transition-colors ${
+                          trial
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-accent"
+                        }`}
+                        title={trial ? "Login to save roadmaps" : "Save"}
+                        type="button"
+                      >
+                        {saveIcon}
+                      </button>
+                      <Button
+                        variant="outline"
+                        onClick={(e) => handleRegen(e)}
+                        disabled={trialLocked}
+                      >
+                        Regenerate
+                      </Button>
+                      <Button
+                        onClick={() => handleDownload()}
+                        disabled={!roadmap}
+                      >
+                        Download PDF
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent>
+                  <div
+                    className="max-h-[60vh] overflow-y-auto overflow-x-hidden rounded-xl border bg-white/70 p-4 text-sm leading-relaxed text-zinc-800"
+                    ref={roadmapref}
+                  >
+                    <Markdown
+                      components={{
+                        code: ({ children }) => (
+                          <code className="rounded bg-zinc-100 px-1 py-0.5 text-[0.9em]">
+                            {children}
+                          </code>
+                        ),
+                        pre: ({ children }) => (
+                          <pre className="my-3 overflow-x-auto rounded-lg bg-zinc-950 p-3 text-zinc-50">
+                            {children}
+                          </pre>
+                        ),
+                      }}
+                    >
+                      {roadmap}
+                    </Markdown>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </main>
