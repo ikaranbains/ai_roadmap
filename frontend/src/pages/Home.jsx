@@ -193,8 +193,10 @@ const Home = ({ trial = false }) => {
             ? "You’ve used all 3 free generations. Login/signup to generate more roadmaps and unlock saved roadmaps."
             : "You can generate up to 3 roadmaps for free. Saved roadmaps and the sidebar are disabled until you login."
         }
-        onPrimary={() => navigate("/login")}
-        onSecondary={() => navigate("/register")}
+        primaryLabel="Continue"
+        secondaryLabel="Login"
+        onPrimary={() => setLimitModalOpen(false)}
+        onSecondary={() => navigate("/login")}
       />
 
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -238,14 +240,17 @@ const Home = ({ trial = false }) => {
                     {trialRemaining}/{TRIAL_LIMIT}
                   </span>
                 </div>
-                <div className="mt-4 flex gap-2">
-                  <Button onClick={() => navigate("/login")} className="w-full">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Button
+                    onClick={() => navigate("/login")}
+                    className="w-full sm:flex-1"
+                  >
                     Login
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => navigate("/register")}
-                    className="w-full"
+                    className="w-full sm:flex-1"
                   >
                     Sign up
                   </Button>
@@ -272,7 +277,7 @@ const Home = ({ trial = false }) => {
                 <CardContent>
                   <form
                     onSubmit={(e) => handleGenerate(e)}
-                    className="flex flex-col gap-3 sm:flex-row sm:items-center"
+                    className="flex items-center justify-centergap-3 sm:flex-row sm:items-center"
                   >
                     <div className="w-full">
                       <label htmlFor="roadmap" className="sr-only">

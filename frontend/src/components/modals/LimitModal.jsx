@@ -70,13 +70,13 @@ const LimitModal = ({
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
           <button
             onClick={onPrimary}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 cursor-pointer"
           >
-            {primaryLabel}
+            {primaryLabel} 
           </button>
           <button
             onClick={onSecondary}
-            className="inline-flex h-10 items-center justify-center rounded-md border bg-white px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            className="inline-flex h-10 items-center justify-center rounded-md border bg-white px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
           >
             {secondaryLabel}
           </button>
